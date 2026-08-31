@@ -1,0 +1,41 @@
+database : where we store the data of our whole application : 
+
+sql : structure qeary language : 
+ data :  table formate : 
+sqlite , mysql , postgresql 
+
+
+
+nosql :  non-structre qeary language: 
+ the data stored inside the nosql database will be in document fomate:
+mongodb : 
+ compas : local databse 
+ localhost:127.0.0.127017 
+ mongodb:127.0.0.127017/
+shell:
+with server :
+
+
+
+connection :
+|
+|_ database: 
+       |
+       |_ collections : 
+            user :
+            products:
+            video :
+            posts:
+
+
+
+ atlas : cloud : 
+
+  [
+    {
+
+    }
+  ]
+
+
+

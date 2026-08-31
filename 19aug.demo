@@ -1,0 +1,8 @@
+MongoDb: 
+Mongoose: ia an odm liberary of nodejs  used to interact with backend and data 
+
+schema :this is the blueprint of the data 
+model : this is used to work with databse 
+
+
+how to use Mongoose : 
