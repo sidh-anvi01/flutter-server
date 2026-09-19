@@ -59,108 +59,144 @@
 
 
 
+const express = require("express");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
-const express=require("express")
-const mongoose=require("mongoose")
-const bcrypt=require("bcrypt")
-const jwt =require("jsonwebtoken")
-const app=express()
+const app = express();
 
-app.use(express.json())
-// connection with database : 
+app.use(express.json());
+
+// TEST API
+app.get("/", (req, res) => {
+  res.send("SERVER IS WORKING");
+});
+// MongoDB
 mongoose.connect("mongodb://127.0.0.1:27017/newAug")
-.then(()=>console.log("database connected "))
-.catch((err)=>console.log(err))
+    .then(() => console.log("Database connected"))
+    .catch((err) => console.log(err));
 
 
-
-const userSchema=new mongoose.Schema({
-    name:String,
-    email:String,
-    password:String,
-    phone:Number
-})
-
-
-// model :
-
-const User=mongoose.model("newUser" ,userSchema)
-
-// how to create :
-
-app.post("/register" ,async(req,res)=>{
-
-     const {name,email,password}=req.body
-     let exitingUser=await User.findOne({email})
-
-     if(exitingUser){
-        return res.json("email alkready existe")
-     }
-
-     const hashedPassword=await bcrypt.hash(password,10)
-
-     let data=new User({
-        name,email,password:hashedPassword
-     })
-     let result=await data.save()
-     res.send({
-        success:true ,
-        "message":"user registered ",
-        result
-     })
-console.log(result) 
-
- 
-})
+// User Schema
+const userSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+    password: String,
+   
+});
 
 
-app.post("/login",async(req,res)=>{
-    const {email,password}=req.body
+// Model
+const User = mongoose.model("newUser", userSchema);
 
-    try{
-        const user =await User.findOne({email})
-        if(!user){
+
+// REGISTER
+
+// REGISTER
+app.post("/register", async (req, res) => {
+
+  console.log("REGISTER API CALLED");
+  console.log(req.body);
+
+  try {
+
+    const { name, email, password } = req.body;
+
+    const existingUser = await User.findOne({ email }); 
+
+    if (existingUser) {
+      return res.json({
+        success: false,
+        message: "Email already exists"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const data = new User({
+      name: name,
+      email: email,
+      password: hashedPassword
+    });
+
+    const result = await data.save();
+
+    console.log("USER SAVED");
+
+    res.json({
+      success: true,
+      message: "User registered successfully",
+      result: result
+    });
+
+  } catch (error) {
+
+    console.log("REGISTER ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+});
+
+
+// LOGIN
+app.post("/login", async (req, res) => {
+
+    const { email, password } = req.body;
+
+    try {
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
             return res.json({
-                message:"user dosenot exist"
-            })
+                message: "User does not exist"
+            });
         }
 
+        const confirmPass = await bcrypt.compare(
+            password,
+            user.password
+        );
 
-        //  check the password:
-         const confirmPass=await bcrypt.compare(password,user.password)
-
-          if(!confirmPass){
+        if (!confirmPass) {
             return res.json({
-                message:"password does not matched "
-            })
-          }
+                message: "Password does not match"
+            });
+        }
 
+        const token = jwt.sign( 
+            { id: user._id },
+            "abc123",
+            { expiresIn: "1h" }
+        );
 
-          const token =jwt.sign({id:user._id},"abc123" ,{expiresIn:'1h'})
+        res.json({
+            success: true,
+            token: token,
+            message: "User logged in successfully"
+        });
 
+    } catch (err) {
 
-          return res.json({
-            token:token,
-            message:"user logged in succcessfull "
-          })
+        console.log(err);
 
+        res.json({
+            success: false,
+            message: "Server error"
+        });
     }
-catch(err){
-
-    console.log(err)
-    return res.json({message:"server error "})
-
-}
+});
 
 
-})
-
-
-
-app.listen(8000)
-
-
-
+// SERVER
+app.listen(8000, "0.0.0.0", () => {
+    console.log("Server running on port 8000");
+});
 
 // token : jwt (json web token ) : 
  
